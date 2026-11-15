@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sabzi Week Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fbf8f2; --card:#ffffff; --ink:#23281f; --muted:#6f7568; --line:#ebe5d9;
+    --green:#2f7d4a; --green-soft:#e6f2e9; --saffron:#e8862a; --saffron-soft:#fdf0e2;
+    --red:#c2453b; --radius:16px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px}
+  button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
+  .wrap{max-width:560px;margin:0 auto;padding:16px 16px 110px}
+  header.top{display:flex;align-items:center;gap:10px;margin:4px 0 14px}
+  header.top .logo{font-size:28px}
+  header.top h1{font-size:21px;margin:0;font-weight:800;letter-spacing:-.2px}
+  header.top p{margin:0;color:var(--muted);font-size:13px}
+  h2{font-size:17px;margin:20px 0 10px;font-weight:800}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+  .muted{color:var(--muted)}
+  .small{font-size:13px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:12px;font-weight:700;background:var(--green-soft);color:var(--green)}
+  .btn.primary{background:var(--green);color:#fff}
+  .btn.block{display:flex;width:100%;font-size:17px;padding:15px}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+  .btn:disabled{opacity:.45;cursor:default}
+  .row-btns{display:flex;gap:8px;flex-wrap:wrap}
+
+  /* bottom nav */
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;background:#fffdf9;border-top:1px solid var(--line);display:flex;justify-content:center;z-index:5}
+  nav.tabs .in{display:flex;max-width:560px;width:100%}
+  nav.tabs button{flex:1;padding:10px 4px 14px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;font-weight:700;color:var(--muted)}
+  nav.tabs button .i{font-size:22px;line-height:1.1}
+  nav.tabs button.on{color:var(--green)}
+  nav.tabs button.on .i{transform:scale(1.08)}
+
+  /* fridge */
+  .search{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#fff;font:inherit;font-size:16px;margin-bottom:10px}
+  .chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+  .chip{background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 6px;text-align:center;line-height:1.15}
+  .chip .e{font-size:22px;display:block}
+  .chip .n{font-weight:700;font-size:14px;display:block}
+  .chip .h{font-size:11.5px;color:var(--muted)}
+  .chip:active{transform:scale(.97)}
+  .chip.sel{background:var(--green-soft);border-color:var(--green)}
+  .have{display:flex;flex-direction:column;gap:8px}
+  .item{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+  .item .e{font-size:24px;width:30px;text-align:center}
+  .item .nm{flex:1;min-width:0;line-height:1.15}
+  .item .nm b{display:block;font-size:15px}
+  .item .nm span{font-size:12px;color:var(--muted)}
+  .seg{display:flex;background:#f3efe6;border-radius:10px;padding:3px}
+  .seg button{padding:6px 8px;border-radius:8px;font-size:12.5px;font-weight:700;color:var(--muted)}
+  .seg button.on{background:#fff;color:var(--green);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  .x{width:32px;height:32px;border-radius:50%;color:var(--muted);font-size:18px}
+  .x:active{background:#f3efe6}
+  .empty{text-align:center;padding:22px 12px;color:var(--muted)}
+  .empty .big{font-size:40px}
+  .sticky-cta{position:fixed;left:0;right:0;bottom:66px;padding:10px 16px;background:linear-gradient(to top,var(--bg) 70%,rgba(251,248,242,0));z-index:4}
+  .sticky-cta .in{max-width:528px;margin:0 auto}
+
+  /* menu */
+  .day{background:#fff;border:1px solid var(--line);border-radius:var(--radius);margin-bottom:12px;overflow:hidden}
+  .day.today{border-color:var(--saffron);box-shadow:0 0 0 2px var(--saffron-soft)}
+  .day .dh{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#faf6ee;font-weight:800}
+  .day.today .dh{background:var(--saffron-soft)}
+  .day .dh .tag{font-size:11px;background:var(--saffron);color:#fff;border-radius:20px;padding:2px 8px;font-weight:800}
+  .meal{display:flex;align-items:center;gap:10px;padding:10px 8px 10px 14px;border-top:1px solid var(--line)}
+  .meal:first-of-type{border-top:none}
+  .meal .slot{font-size:20px;width:26px;text-align:center}
+  .meal .body{flex:1;min-width:0;cursor:pointer}
+  .meal .body .lbl{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+  .meal .body .dn{font-weight:800;font-size:15.5px}
+  .meal .body .sd{font-size:12.5px;color:var(--muted)}
+  .meal .vs{font-size:13px;letter-spacing:1px}
+  .swap{width:38px;height:38px;border-radius:50%;font-size:18px;color:var(--green);background:var(--green-soft);flex:none}
+  .swap:active{transform:rotate(90deg)}
+  .notice{background:var(--saffron-soft);border-radius:12px;padding:12px 14px;font-size:14px}
+  .glabel{font-size:13px;font-weight:800;color:var(--muted);margin:14px 0 8px}
+  .glabel:first-child{margin-top:2px}
+  .daysel{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .daysel button{padding:9px 0;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:700;font-size:13px}
+  .daysel button.on{border-color:var(--green);background:var(--green-soft);color:var(--green)}
+  .styleseg{display:flex;gap:6px}
+  .styleseg button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:700;font-size:14px}
+  .styleseg button.on{border-color:var(--green);background:var(--green-soft);color:var(--green)}
+
+  /* add */
+  textarea{width:100%;min-height:120px;border-radius:12px;border:1px solid var(--line);padding:12px;font:inherit;font-size:15px;resize:vertical;background:#fff}
+  .filebtn{position:relative;overflow:hidden}
+  .filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+  .found{margin-top:12px}
+  .steps{margin:6px 0 0;padding-left:20px;font-size:14px;color:var(--muted)}
+  .steps li{margin:3px 0}
+  .logos{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .logos span{font-size:12px;font-weight:800;padding:4px 10px;border-radius:20px;background:#f3efe6}
+
+  /* sheet */
+  .overlay{position:fixed;inset:0;background:rgba(20,25,18,.42);display:none;align-items:flex-end;justify-content:center;z-index:10}
+  .overlay.show{display:flex}
+  .sheet{background:#fff;width:100%;max-width:560px;border-radius:20px 20px 0 0;padding:18px 18px 28px;max-height:86vh;overflow:auto}
+  .sheet .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:-6px auto 12px}
+  .sheet h3{margin:0 0 4px;font-size:21px}
+  .vtags{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+  .vtags span{background:var(--green-soft);color:var(--green);font-weight:700;font-size:13px;border-radius:20px;padding:4px 10px}
+  .vtags span.opt{background:#f3efe6;color:var(--muted)}
+  .recipe{white-space:pre-wrap;font-size:15px;line-height:1.5;background:#faf6ee;border-radius:12px;padding:12px;margin-top:12px}
+  .toast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%) translateY(20px);background:#23281f;color:#fff;padding:10px 16px;border-radius:12px;font-weight:700;font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:20;max-width:90%;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .saved{font-size:12px;color:var(--muted);text-align:right;min-height:16px}
+  .spin{display:inline-block;width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo">🥕</div>
+    <div>
+      <h1>Sabzi Week Planner</h1>
+      <p>What's in the fridge → what to cook all week</p>
+    </div>
+  </header>
+  <div class="saved" id="saved"></div>
+  <main id="view"></main>
+</div>
+<div id="cta" class="sticky-cta" style="display:none"><div class="in"></div></div>
+<nav class="tabs"><div class="in">
+  <button data-tab="fridge"><span class="i">🧺</span>My Fridge</button>
+  <button data-tab="menu"><span class="i">📅</span>Week Menu</button>
+  <button data-tab="add"><span class="i">🛒</span>Add from Order</button>
+</div></nav>
+<div class="overlay" id="overlay"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script id="state" type="application/json">{"fridge":{},"menu":null,"style":"mix","vegDays":[],"updated":0}</script>
+<script>
+/* ---------------- Data ---------------- */
+const VEG = [
+  {id:'potato',n:'Potato',h:'Aloo',e:'🥔',a:['potato','potatoes','aloo','alu'],p:1,st:1},
+  {id:'onion',n:'Onion',h:'Pyaz',e:'🧅',a:['onion','onions','pyaz','pyaaz','kanda'],p:1,st:1},
+  {id:'tomato',n:'Tomato',h:'Tamatar',e:'🍅',a:['tomato','tomatoes','tamatar'],p:2,st:1},
+  {id:'spinach',n:'Spinach',h:'Palak',e:'🥬',a:['spinach','palak'],p:3},
+  {id:'methi',n:'Fenugreek',h:'Methi',e:'🌿',a:['methi','fenugreek'],p:3},
+  {id:'cabbage',n:'Cabbage',h:'Patta Gobi',e:'🥬',a:['cabbage','patta gobi','patta gobhi','band gobi','bandh gobi','pattagobi'],p:1},
+  {id:'cauliflower',n:'Cauliflower',h:'Gobi',e:'🥦',a:['cauliflower','phool gobi','phool gobhi','gobhi','gobi'],p:2},
+  {id:'capsicum',n:'Capsicum',h:'Shimla Mirch',e:'🫑',a:['capsicum','shimla mirch','bell pepper','bell peppers'],p:2},
+  {id:'okra',n:'Okra',h:'Bhindi',e:'🌱',a:['okra','bhindi','lady finger','ladies finger','lady fingers','ladyfinger'],p:3},
+  {id:'brinjal',n:'Brinjal',h:'Baingan',e:'🍆',a:['brinjal','brinjals','baingan','eggplant','bharta baingan'],p:2},
+  {id:'peas',n:'Green Peas',h:'Matar',e:'🫛',a:['green peas','peas','matar','mutter'],p:2},
+  {id:'carrot',n:'Carrot',h:'Gajar',e:'🥕',a:['carrot','carrots','gajar'],p:1},
+  {id:'beans',n:'French Beans',h:'Beans',e:'🫛',a:['french beans','beans','green beans'],p:2},
+  {id:'bottlegourd',n:'Bottle Gourd',h:'Lauki',e:'🥒',a:['bottle gourd','lauki','dudhi','ghiya','sorakaya'],p:2},
+  {id:'bittergourd',n:'Bitter Gourd',h:'Karela',e:'🥒',a:['bitter gourd','karela'],p:2},
+  {id:'ridgegourd',n:'Ridge Gourd',h:'Turai',e:'🥒',a:['ridge gourd','turai','tori','torai','beerakaya'],p:2},
+  {id:'pumpkin',n:'Pumpkin',h:'Kaddu',e:'🎃',a:['pumpkin','kaddu','red pumpkin','yellow pumpkin','kashiphal'],p:1},
+  {id:'radish',n:'Radish',h:'Mooli',e:'🤍',a:['radish','mooli','muli'],p:2},
+  {id:'beetroot',n:'Beetroot',h:'Chukandar',e:'🟣',a:['beetroot','beet root','beet','chukandar'],p:1},
+  {id:'cucumber',n:'Cucumber',h:'Kheera',e:'🥒',a:['cucumber','cucumbers','kheera','khira'],p:2},
+  {id:'drumstick',n:'Drumstick',h:'Sahjan',e:'🌿',a:['drumstick','drumsticks','moringa','sahjan','murungakkai'],p:2},
+  {id:'corn',n:'Sweet Corn',h:'Bhutta',e:'🌽',a:['sweet corn','corn','bhutta','makai'],p:2},
+  {id:'mushroom',n:'Mushroom',h:'Khumb',e:'🍄',a:['mushroom','mushrooms','button mushroom'],p:3},
+  {id:'arbi',n:'Colocasia',h:'Arbi',e:'🟤',a:['arbi','colocasia','taro','arvi'],p:1},
+  {id:'rawbanana',n:'Raw Banana',h:'Kacha Kela',e:'🍌',a:['raw banana','kacha kela','plantain','green banana'],p:2},
+  {id:'tinda',n:'Round Gourd',h:'Tinda',e:'🟢',a:['tinda','round gourd','apple gourd'],p:2},
+  {id:'gawar',n:'Cluster Beans',h:'Gawar',e:'🫛',a:['cluster beans','gawar','guar','gavar'],p:2},
+  {id:'sweetpotato',n:'Sweet Potato',h:'Shakarkandi',e:'🍠',a:['sweet potato','sweet potatoes','shakarkandi','shakarkand'],p:1},
+  {id:'springonion',n:'Spring Onion',h:'Hara Pyaz',e:'🌱',a:['spring onion','spring onions','hara pyaz','scallion','scallions'],p:3},
+  // Dairy
+  {id:'paneer',n:'Paneer',h:'Cottage cheese',e:'🧀',a:['paneer','cottage cheese'],p:2,g:'d'},
+  {id:'milk',n:'Milk',h:'Doodh',e:'🥛',a:['milk','doodh','toned milk','full cream milk','cow milk','buffalo milk'],p:2,g:'d',u:2},
+  {id:'curd',n:'Curd',h:'Dahi',e:'🥣',a:['curd','dahi','yogurt','yoghurt','greek yogurt'],p:2,g:'d',u:2},
+  {id:'cheese',n:'Cheese',h:'Cheese',e:'🧀',a:['cheese','cheese slices','cheese slice','mozzarella','cheddar','processed cheese'],p:1,g:'d'},
+  {id:'butter',n:'Butter',h:'Makhan',e:'🧈',a:['butter','makhan','makkhan','salted butter'],p:1,g:'d',u:2},
+  {id:'cream',n:'Fresh Cream',h:'Malai',e:'🍶',a:['fresh cream','cream','malai'],p:2,g:'d'},
+  // Non-veg
+  {id:'eggs',n:'Eggs',h:'Anda',e:'🥚',a:['eggs','egg','anda','ande'],p:1,g:'n',u:2},
+  {id:'chicken',n:'Chicken',h:'Murgh',e:'🍗',a:['chicken','murgh','boneless chicken','chicken curry cut','chicken breast','drumsticks chicken'],p:3,g:'n'},
+  {id:'mutton',n:'Mutton',h:'Gosht',e:'🍖',a:['mutton','goat meat','lamb','gosht','keema','mince'],p:3,g:'n'},
+  {id:'fish',n:'Fish',h:'Machli',e:'🐟',a:['fish','machli','machhli','rohu','katla','catla','surmai','pomfret','basa','seer fish','bangda','mackerel','tilapia','salmon','hilsa','sardine'],p:3,g:'n'},
+  {id:'prawns',n:'Prawns',h:'Jhinga',e:'🦐',a:['prawns','prawn','shrimp','shrimps','jhinga'],p:3,g:'n'},
+];
+VEG.forEach(v=>{ v.g = v.g||'v'; v.u = v.u || (v.st ? 3 : 1); });
+const GROUPS = [{g:'v',l:'🥦 Vegetables'},{g:'d',l:'🥛 Dairy'},{g:'n',l:'🍗 Eggs, Meat & Fish'}];
+const EXCLUDE = ['ice cream','peanut butter','coconut milk','milk chocolate','milk bread','milk powder','cheese spread','chicken masala','fish masala','egg noodles','eggless','cream biscuit','cream biscuits','butter cookies','buttermilk','butter milk','chicken stock'];
+const VM = Object.fromEntries(VEG.map(v=>[v.id,v]));
+// [name, slots, need[], optional[], region n/s/a, side]
+const RAW_R = [
+  // Breakfast
+  ['Aloo Paratha','b',['potato'],['onion'],'n','with curd & pickle'],
+  ['Gobi Paratha','b',['cauliflower'],[],'n','with curd'],
+  ['Mooli Paratha','b',['radish'],[],'n','with curd'],
+  ['Palak Paratha','b',['spinach'],[],'n','with curd'],
+  ['Methi Thepla','bd',['methi'],[],'n','with curd & pickle'],
+  ['Lauki Thepla','b',['bottlegourd'],[],'n','with tea & pickle'],
+  ['Paneer Paratha','b',['paneer'],['onion'],'n','with curd'],
+  ['Vegetable Poha','b',['onion'],['peas','potato','carrot'],'n','with lemon & sev'],
+  ['Vegetable Upma','b',['onion'],['carrot','beans','peas'],'s','with coconut chutney'],
+  ['Masala Dosa','bd',['potato','onion'],[],'s','with sambar & chutney'],
+  ['Onion Tomato Uttapam','bd',['onion','tomato'],['capsicum','carrot'],'s','with coconut chutney'],
+  ['Besan Chilla','b',['onion','tomato'],['capsicum','spinach'],'n','with green chutney'],
+  ['Idli with Tomato Chutney','b',['tomato'],['onion'],'s',''],
+  ['Rava Idli','b',['carrot'],['peas'],'s','with coconut chutney'],
+  ['Paneer Bhurji Toast','b',['paneer','onion'],['tomato','capsicum'],'n',''],
+  ['Sabudana Khichdi','b',['potato'],[],'n','with curd'],
+  ['Veg Sandwich','b',['cucumber','tomato'],['onion','potato','capsicum'],'a','with green chutney'],
+  ['Vegetable Daliya','bd',['carrot','peas'],['beans','tomato'],'a',''],
+  ['Semiya Upma','b',['onion'],['carrot','peas','beans'],'s',''],
+  ['Sweet Corn Chaat','b',['corn'],['onion','tomato','cucumber'],'a',''],
+  ['Moong Dal Chilla','b',[],['onion','spinach','tomato'],'n','with green chutney'],
+  ['Masala Oats','b',[],['carrot','peas','onion','tomato'],'a',''],
+  ['Ragi Dosa','b',[],['onion'],'s','with chutney'],
+  ['Masala Omelette & Toast','b',['eggs'],['onion','tomato','capsicum'],'a',''],
+  ['Egg Bhurji','bd',['eggs','onion'],['tomato','capsicum'],'n','with pav or roti'],
+  ['Boiled Eggs & Toast','b',['eggs'],['butter'],'a',''],
+  ['Anda Paratha','b',['eggs'],['onion'],'n','with chai'],
+  ['Cheese Corn Sandwich','b',['cheese'],['corn','capsicum','onion'],'a',''],
+  ['Cheese Masala Toast','b',['cheese','onion'],['tomato','capsicum'],'a',''],
+  ['Sweet Daliya with Milk','b',['milk'],[],'a',''],
+  ['Vermicelli Kheer & Toast','b',['milk'],[],'n',''],
+  ['Dahi Poha','b',['curd'],[],'n',''],
+  ['Butter Toast & Masala Chai','b',['butter','milk'],[],'a',''],
+  // Lunch / Dinner
+  ['Aloo Gobi','ld',['potato','cauliflower'],['tomato','peas'],'n'],
+  ['Aloo Matar','ld',['potato','peas'],['tomato'],'n'],
+  ['Aloo Methi','ld',['potato','methi'],[],'n'],
+  ['Jeera Aloo','ld',['potato'],[],'n'],
+  ['Palak Paneer','ld',['spinach','paneer'],['onion','tomato'],'n'],
+  ['Matar Paneer','ld',['paneer','peas','tomato'],['onion'],'n'],
+  ['Kadai Paneer','d',['paneer','capsicum','onion'],['tomato'],'n','with naan or roti'],
+  ['Paneer Tikka','d',['paneer','capsicum','onion'],[],'n','with mint chutney & salad'],
+  ['Bhindi Masala','ld',['okra'],['onion','tomato'],'n'],
+  ['Baingan Bharta','ld',['brinjal'],['onion','tomato','peas'],'n'],
+  ['Bharwa Baingan','ld',['brinjal'],[],'n'],
+  ['Aloo Baingan','ld',['potato','brinjal'],['tomato'],'n'],
+  ['Lauki Chana Dal','ld',['bottlegourd'],['tomato'],'n','with rice & roti'],
+  ['Lauki Kofta','d',['bottlegourd','tomato'],['onion'],'n','with roti'],
+  ['Karela Fry','l',['bittergourd'],['onion'],'a'],
+  ['Turai Sabzi','ld',['ridgegourd'],['tomato','onion'],'n'],
+  ['Kaddu ki Sabzi','ld',['pumpkin'],[],'n','with puri or roti'],
+  ['Cabbage Matar','ld',['cabbage'],['peas','carrot'],'n'],
+  ['Cabbage Poriyal','l',['cabbage'],['carrot'],'s'],
+  ['Beans Poriyal','l',['beans'],['carrot'],'s'],
+  ['Beetroot Poriyal','l',['beetroot'],[],'s'],
+  ['Gajar Matar','ld',['carrot','peas'],['potato'],'n'],
+  ['Mix Veg','ld',['carrot','beans'],['peas','cauliflower','potato','capsicum'],'n'],
+  ['Shimla Mirch Aloo','ld',['capsicum','potato'],[],'n'],
+  ['Palak Dal','l',['spinach'],['tomato'],'a','with rice'],
+  ['Methi Malai Matar','d',['methi','peas'],['onion'],'n','with roti'],
+  ['Vegetable Sambar','l',['tomato'],['drumstick','brinjal','pumpkin','okra','onion','carrot'],'s','with rice & poriyal'],
+  ['Drumstick Sambar','l',['drumstick'],['tomato','onion'],'s','with rice & papad'],
+  ['Tomato Rasam Rice','ld',['tomato'],[],'s','with papad'],
+  ['Avial','l',['carrot','beans'],['drumstick','pumpkin','rawbanana','cucumber'],'s','with rice'],
+  ['Veg Pulao','ld',['carrot','peas'],['beans','potato','cauliflower'],'a','with raita'],
+  ['Veg Biryani','ld',['onion','carrot','beans'],['potato','peas','cauliflower'],'a','with raita'],
+  ['Bisi Bele Bath','ld',['carrot','beans'],['peas','potato','onion'],'s','with boondi raita'],
+  ['Curd Rice','l',['curd'],['cucumber','carrot'],'s','with pickle'],
+  ['Rajma Chawal','l',['onion','tomato'],['curd'],'n','with salad'],
+  ['Chole Chawal','l',['onion','tomato'],['curd'],'n','with salad'],
+  ['Kadhi Pakora','l',['curd','onion'],['spinach'],'n','with rice'],
+  ['Dahi Aloo','ld',['curd','potato'],[],'n'],
+  ['Paneer Butter Masala','d',['paneer','tomato'],['butter','cream','onion'],'n','with naan or roti'],
+  ['Malai Kofta','d',['paneer','potato','cream'],['tomato','onion'],'n','with naan or roti'],
+  ['Cucumber Raita Pulao','l',['curd','cucumber'],['peas','carrot'],'a',''],
+  // Eggs, meat & fish
+  ['Egg Curry','ld',['eggs','onion','tomato'],[],'a'],
+  ['Egg Fried Rice','d',['eggs'],['carrot','beans','springonion','capsicum'],'a',''],
+  ['Egg Biryani','l',['eggs','onion'],['curd','tomato'],'a','with raita'],
+  ['Chicken Curry','ld',['chicken','onion','tomato'],['curd'],'n'],
+  ['Butter Chicken','d',['chicken','tomato'],['butter','cream','curd'],'n','with naan or roti'],
+  ['Chicken Biryani','l',['chicken','onion'],['curd','tomato'],'a','with raita & salad'],
+  ['Chilli Chicken','d',['chicken','capsicum','onion'],['springonion'],'a','with fried rice'],
+  ['Chicken Tikka','d',['chicken','curd'],['capsicum','onion'],'n','with mint chutney & salad'],
+  ['Chettinad Chicken','ld',['chicken','onion','tomato'],[],'s','with rice or parotta'],
+  ['Chicken Frankie','d',['chicken','onion'],['capsicum','cabbage'],'a',''],
+  ['Mutton Curry','ld',['mutton','onion','tomato'],['curd','potato'],'a'],
+  ['Keema Matar','ld',['mutton','peas','onion'],['tomato'],'n','with pav or roti'],
+  ['Mutton Biryani','l',['mutton','onion'],['curd','potato'],'a','with raita'],
+  ['Fish Curry','l',['fish','tomato'],['onion','drumstick','brinjal'],'s','with rice'],
+  ['Fish Fry','ld',['fish'],[],'a','with dal, rice & salad'],
+  ['Machher Jhol','l',['fish','potato'],['tomato','brinjal'],'a','with rice'],
+  ['Prawn Masala','ld',['prawns','onion','tomato'],[],'a','with rice or roti'],
+  ['Prawn Curry','l',['prawns'],['tomato','onion','drumstick'],'s','with rice'],
+  ['Prawn Fried Rice','d',['prawns'],['carrot','beans','springonion','capsicum'],'a',''],
+  ['Mushroom Matar','ld',['mushroom','peas'],['onion','tomato'],'n'],
+  ['Mushroom Masala','d',['mushroom','onion','tomato'],['capsicum'],'n','with roti'],
+  ['Arbi Fry','l',['arbi'],[],'n','with dal & rice'],
+  ['Raw Banana Fry','l',['rawbanana'],[],'s','with sambar & rice'],
+  ['Mooli ki Bhurji','ld',['radish'],[],'n'],
+  ['Tinda Masala','ld',['tinda'],['tomato','onion'],'n'],
+  ['Gawar ki Sabzi','ld',['gawar'],[],'n'],
+  ['Corn Palak','d',['corn','spinach'],['onion'],'n','with roti'],
+  ['Pav Bhaji','d',['potato','tomato','capsicum'],['cauliflower','peas','carrot','onion'],'a','with onion & lemon'],
+  ['Veg Hakka Noodles','d',['cabbage','capsicum','carrot'],['onion','beans','springonion'],'a',''],
+  ['Veg Fried Rice','d',['carrot','beans'],['capsicum','cabbage','springonion','peas'],'a','with Manchurian gravy'],
+  ['Veg Manchurian','d',['cabbage','carrot'],['capsicum','springonion'],'a','with fried rice'],
+  ['Tomato Soup & Toast','d',['tomato'],['carrot','beetroot'],'a',''],
+  ['Veg Frankie','d',['potato','onion'],['capsicum','cabbage'],'a',''],
+  ['Shakarkandi Chaat','d',['sweetpotato'],['onion','tomato'],'a',''],
+  // Pantry fallbacks (no fresh veg needed)
+  ['Dal Tadka & Jeera Rice','ld',[],['tomato','onion'],'a','with salad'],
+  ['Moong Dal Khichdi','d',[],['peas','carrot','tomato','potato'],'a','with curd & papad'],
+  ['Lemon Rice','l',[],['onion','carrot'],'s','with papad & pickle'],
+  ['Chana Masala & Roti','ld',[],['onion','tomato'],'n',''],
+  ['Sambar Rice','ld',[],['drumstick','tomato','onion'],'s','with papad'],
+];
+const R = RAW_R.map(([n,s,need,opt,reg,side])=>({n,s,need,opt,reg,side}));
+const RM = Object.fromEntries(R.map(r=>[r.n,r]));
+const SLOTS = [{k:'b',e:'☀️',l:'Breakfast'},{k:'l',e:'🍛',l:'Lunch'},{k:'d',e:'🌙',l:'Dinner'}];
+const LEVELS = {1:'Little',2:'Some',3:'Lots'};
+
+/* ---------------- State & saving ---------------- */
+const BOOT_SRC = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+let SRC = BOOT_SRC;
+let S;
+try { S = JSON.parse(document.getElementById('state').textContent); } catch(e){ S = {fridge:{},menu:null,style:'mix',updated:0}; }
+try {
+  const loc = JSON.parse(localStorage.getItem('sabzi-state')||'null');
+  if (loc && (loc.updated||0) > (S.updated||0)) S = loc;
+} catch(e){}
+S.fridge = S.fridge||{}; S.style = S.style||'mix';
+
+let artifactCap = null, sampleCap = null, sampleImages = false;
+let saveTimer = null;
+function save(){
+  S.updated = Date.now();
+  try { localStorage.setItem('sabzi-state', JSON.stringify(S)); } catch(e){}
+  if (!artifactCap) { setSaved('Saved on this device'); return; }
+  setSaved('Saving…');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(publishNow, 1800);
+}
+async function publishNow(){
+  try {
+    const json = JSON.stringify(S).replace(/</g,'\\u003c');
+    const html = SRC.replace(/(<script id="state" type="application\/json">)[\s\S]*?(<\/script>)/, (m,a,b)=>a+json+b);
+    try { sessionStorage.setItem('sabzi-tab', currentTab()); } catch(e){}
+    await artifactCap.publish(html);
+    setSaved('Saved ✓ — synced for everyone using this page');
+  } catch(err){
+    const c = err && err.code;
+    if (c==='not_granted' || c==='not_writer') setSaved('Saved on this device only');
+    else if (c==='conflict') setSaved('Updated from another device');
+    else setSaved('Saved on this device');
+  }
+}
+function setSaved(t){ document.getElementById('saved').textContent = t; }
+
+/* ---------------- Helpers ---------------- */
+const esc = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const view = document.getElementById('view');
+function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2200); }
+function haveIds(){ return Object.keys(S.fridge).filter(id=>S.fridge[id]>0 && VM[id]); }
+function sideFor(r, slot){
+  if (r.side) return r.side;
+  if (slot==='b') return '';
+  if (r.reg==='s') return slot==='l' ? 'with rice, rasam & curd' : 'with chapati';
+  return slot==='l' ? 'with dal, rice & roti' : 'with roti';
+}
+function dayDate(start, i){ const d=new Date(start+'T00:00:00'); d.setDate(d.getDate()+i); return d; }
+function fmtDay(d){ return d.toLocaleDateString('en-IN',{weekday:'short', day:'numeric', month:'short'}); }
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+async function copyText(t){
+  try { await navigator.clipboard.writeText(t); toast('Copied — paste it in WhatsApp'); }
+  catch(e){ openSheet(`<div class="grab"></div><h3>Copy this</h3><p class="muted small">Select all and copy:</p><textarea readonly style="min-height:260px">${esc(t)}</textarea>`); }
+}
+
+/* ---------------- Planner ---------------- */
+const isNV = r => r.need.some(id=>VM[id].g==='n');
+function vegOnlyDay(start, i){ return (S.vegDays||[]).includes(dayDate(start,i).getDay()); }
+function scoreRecipe(r, slot, dayIdx, avail, dayUsed){
+  const style = S.style;
+  let sc = 0;
+  if (r.need.length===0) sc = 0.5;
+  if (isNV(r) && dayUsed.has('__nv')) sc -= 2.5;
+  for (const id of r.need){
+    const v = VM[id];
+    sc += 3 + (v.st ? -1.2 : 0) + (v.p||1) * (dayIdx<3 ? 1.2 : 0.2);
+    if (dayUsed.has(id) && !v.st) sc -= 3.5;
+  }
+  sc += r.opt.filter(id=>avail(id)).length * 0.7;
+  if (style!=='mix'){ if (r.reg===style) sc += 2.5; else if (r.reg!=='a') sc -= 3; }
+  return sc + Math.random()*2;
+}
+function planWeek(){
+  const rem = {};
+  for (const id of haveIds()) rem[id] = S.fridge[id] * VM[id].u;
+  const usedNames = new Set();
+  const days = [];
+  const start = todayStr();
+  for (let d=0; d<7; d++){
+    const dayUsed = new Set(), row = [];
+    const vegOnly = vegOnlyDay(start, d);
+    for (const {k} of SLOTS){
+      const ok = r => r.s.includes(k) && r.need.every(id=>rem[id]>0) && !(vegOnly && isNV(r));
+      let c = R.filter(r=>ok(r) && !usedNames.has(r.n));
+      if (!c.length) c = R.filter(ok);
+      const scored = c.map(r=>({r, sc:scoreRecipe(r,k,d,id=>rem[id]>0,dayUsed)})).sort((a,b)=>b.sc-a.sc);
+      const pick = scored[Math.random()<0.7 ? 0 : Math.min(1, scored.length-1)].r;
+      pick.need.forEach(id=>{ rem[id]--; dayUsed.add(id); });
+      if (isNV(pick)) dayUsed.add('__nv');
+      usedNames.add(pick.n);
+      row.push(pick.n);
+    }
+    days.push(row);
+  }
+  const finished = haveIds().filter(id=>rem[id]<=0);
+  S.menu = {start, days, finished};
+  save();
+}
+function swapMeal(di, si){
+  const k = SLOTS[si].k, have = new Set(haveIds());
+  const inMenu = new Set(S.menu.days.flat());
+  const others = S.menu.days[di].filter((_,j)=>j!==si).map(n=>RM[n]).filter(Boolean);
+  const dayUsed = new Set(others.flatMap(r=>r.need));
+  if (others.some(isNV)) dayUsed.add('__nv');
+  const vegOnly = vegOnlyDay(S.menu.start, di);
+  const c = R.filter(r=>r.s.includes(k) && !inMenu.has(r.n) && r.need.every(id=>have.has(id)) && !(vegOnly && isNV(r)));
+  if (!c.length){ toast('No other dish fits your fridge for this meal'); return; }
+  const scored = c.map(r=>({r, sc:scoreRecipe(r,k,di,id=>have.has(id),dayUsed)})).sort((a,b)=>b.sc-a.sc);
+  const pick = scored[Math.floor(Math.random()*Math.min(4,scored.length))].r;
+  S.menu.days[di][si] = pick.n;
+  save(); render();
+  toast('Swapped to ' + pick.n);
+}
+function menuText(){
+  const m = S.menu; let t = '🗓️ Weekly Menu\n';
+  m.days.forEach((row,i)=>{
+    t += '\n*' + fmtDay(dayDate(m.start,i)) + '*\n';
+    row.forEach((n,j)=>{ const r=RM[n]; const sd = r ? sideFor(r,SLOTS[j].k) : ''; t += SLOTS[j].e + ' ' + n + (sd ? ' ('+sd+')' : '') + '\n'; });
+  });
+  return t;
+}
+
+/* ---------------- Views ---------------- */
+function currentTab(){ const h=(location.hash||'').slice(1); return ['fridge','menu','add'].includes(h) ? h : (haveIds().length ? 'menu' : 'fridge'); }
+function go(tab){ if (location.hash !== '#'+tab) location.hash = tab; else render(); }
+window.addEventListener('hashchange', render);
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>go(b.dataset.tab));
+
+function render(){
+  const tab = currentTab();
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('on', b.dataset.tab===tab));
+  const cta = document.getElementById('cta'); cta.style.display='none';
+  if (tab==='fridge') renderFridge();
+  else if (tab==='menu') renderMenu();
+  else renderAdd();
+  window.scrollTo(0,0);
+}
+
+let fridgeFilter = '';
+function renderFridge(){
+  const have = haveIds();
+  let h = `<h2>In your fridge ${have.length?`<span class="muted small">(${have.length})</span>`:''}</h2>`;
+  if (!have.length){
+    h += `<div class="card empty"><div class="big">🧺</div><b>Your fridge is empty here</b><br><span class="small">Tap items below to add them, or import from your Amazon / Flipkart / Instamart order.</span></div>`;
+  } else {
+    h += `<div class="have">` + have.map(id=>{ const v=VM[id], lv=S.fridge[id];
+      return `<div class="item"><span class="e">${v.e}</span><div class="nm"><b>${esc(v.n)}</b><span>${esc(v.h)}</span></div>
+      <div class="seg">${[1,2,3].map(l=>`<button data-lv="${id}:${l}" class="${lv===l?'on':''}">${LEVELS[l]}</button>`).join('')}</div>
+      <button class="x" data-rm="${id}" aria-label="Remove">✕</button></div>`; }).join('') + `</div>
+      <div style="text-align:right;margin-top:6px"><button class="small muted" id="clearAll">Clear all</button></div>`;
+  }
+  h += `<h2>Add to fridge</h2><input class="search" id="q" placeholder="Search… e.g. bhindi, dahi, chicken" value="${esc(fridgeFilter)}">
+    <div id="chips"></div>`;
+  h += `<h2>Food style</h2><div class="styleseg">${[['mix','Mix'],['n','North Indian'],['s','South Indian']].map(([k,l])=>`<button data-style="${k}" class="${S.style===k?'on':''}">${l}</button>`).join('')}</div>`;
+  const vd = S.vegDays||[];
+  h += `<h2>Veg-only days <span class="muted small">(optional)</span></h2><p class="small muted" style="margin:-4px 0 8px">No eggs, meat or fish will be planned on these days.</p>
+    <div class="daysel">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((l,i)=>`<button data-vday="${i}" class="${vd.includes(i)?'on':''}">${l}</button>`).join('')}</div>`;
+  view.innerHTML = h;
+  drawChips();
+  const q = document.getElementById('q');
+  q.oninput = ()=>{ fridgeFilter=q.value; drawChips(); };
+  view.querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>{ const [id,l]=b.dataset.lv.split(':'); S.fridge[id]=+l; save(); renderFridge(); });
+  view.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ delete S.fridge[b.dataset.rm]; save(); renderFridge(); });
+  view.querySelectorAll('[data-style]').forEach(b=>b.onclick=()=>{ S.style=b.dataset.style; save(); renderFridge(); });
+  view.querySelectorAll('[data-vday]').forEach(b=>b.onclick=()=>{ const d=+b.dataset.vday; const s=new Set(S.vegDays||[]); s.has(d)?s.delete(d):s.add(d); S.vegDays=[...s].sort(); save(); b.classList.toggle('on'); });
+  const ca = document.getElementById('clearAll'); if (ca) ca.onclick=()=>{ openConfirm('Remove all vegetables from the fridge list?', ()=>{ S.fridge={}; save(); renderFridge(); }); };
+  if (have.length){
+    const cta = document.getElementById('cta'); cta.style.display='block';
+    cta.querySelector('.in').innerHTML = `<button class="btn primary block" id="planBtn">✨ Plan my week</button>`;
+    document.getElementById('planBtn').onclick = ()=>{ planWeek(); go('menu'); toast('Your week is planned!'); };
+  }
+}
+function drawChips(){
+  const f = fridgeFilter.trim().toLowerCase();
+  const list = VEG.filter(v=>!(S.fridge[v.id]>0)).filter(v=>!f || v.n.toLowerCase().includes(f) || v.h.toLowerCase().includes(f) || v.a.some(a=>a.includes(f)));
+  const el = document.getElementById('chips');
+  el.innerHTML = list.length ? GROUPS.map(G=>{ const gl=list.filter(v=>v.g===G.g); if(!gl.length) return '';
+      return `<div class="glabel">${G.l}</div><div class="chips">` + gl.map(v=>`<button class="chip" data-add="${v.id}"><span class="e">${v.e}</span><span class="n">${esc(v.n)}</span><span class="h">${esc(v.h)}</span></button>`).join('') + `</div>`; }).join('')
+    : `<p class="muted small">Nothing matches — all added already?</p>`;
+  el.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{ S.fridge[b.dataset.add]=2; save(); toast(VM[b.dataset.add].n+' added'); renderFridge(); });
+}
+
+function renderMenu(){
+  const have = haveIds();
+  if (!S.menu){
+    view.innerHTML = `<div class="card empty"><div class="big">📅</div><b>No menu yet</b><br><span class="small">${have.length ? 'You have '+have.length+' vegetables in the fridge.' : 'Add the vegetables you have first.'}</span><br><br>
+      ${have.length ? `<button class="btn primary" id="p1">✨ Plan my week</button>` : `<button class="btn primary" id="p2">🧺 Add vegetables</button>`}</div>`;
+    const p1=document.getElementById('p1'); if(p1) p1.onclick=()=>{ planWeek(); render(); toast('Your week is planned!'); };
+    const p2=document.getElementById('p2'); if(p2) p2.onclick=()=>go('fridge');
+    return;
+  }
+  const m = S.menu, today = todayStr();
+  const end = dayDate(m.start,6);
+  let h = `<div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 12px">
+    <div><b style="font-size:17px">This week's menu</b><br><span class="small muted">${fmtDay(dayDate(m.start,0))} – ${fmtDay(end)}</span></div>
+    <div class="row-btns"><button class="btn ghost" id="copyM">📋 Copy</button><button class="btn" id="replan">↻ Re-plan</button></div></div>`;
+  if (m.start < today && dayDate(m.start,6) < new Date(today+'T00:00:00')) h += `<div class="notice" style="margin-bottom:12px">This menu is from last week. Update your fridge and tap <b>Re-plan</b>.</div>`;
+  m.days.forEach((row,i)=>{
+    const d = dayDate(m.start,i), isToday = (d.toDateString()===new Date().toDateString());
+    h += `<div class="day ${isToday?'today':''}"><div class="dh"><span>${fmtDay(d)}</span>${isToday?'<span class="tag">TODAY</span>':''}</div>`;
+    row.forEach((n,j)=>{ const r=RM[n]||{need:[],opt:[]}; const sl=SLOTS[j];
+      const sd = RM[n] ? sideFor(r, sl.k) : '';
+      const vs = r.need.map(id=>VM[id].e).join('') || '🫙';
+      h += `<div class="meal"><span class="slot">${sl.e}</span><div class="body" data-open="${i}:${j}"><div class="lbl">${sl.l}</div><div class="dn">${esc(n)}</div>${sd?`<div class="sd">${esc(sd)}</div>`:''}</div><span class="vs" title="Uses">${vs}</span><button class="swap" data-swap="${i}:${j}" aria-label="Swap dish">↻</button></div>`;
+    });
+    h += `</div>`;
+  });
+  if (m.finished && m.finished.length){
+    const names = m.finished.filter(id=>VM[id]).map(id=>VM[id].n);
+    h += `<div class="card" style="margin-top:6px"><b>🛒 Likely used up by week's end</b><p class="small muted" style="margin:6px 0 10px">${esc(names.join(', '))}</p><button class="btn ghost" id="copyShop">Copy as shopping list</button></div>`;
+  }
+  h += `<p class="small muted" style="text-align:center;margin-top:16px">🫙 = pantry dish (dal, rice, chana) — nothing fresh needed. Tap a dish for details.</p>`;
+  view.innerHTML = h;
+  document.getElementById('copyM').onclick = ()=>copyText(menuText());
+  document.getElementById('replan').onclick = ()=>{ if(!haveIds().length){ toast('Add vegetables first'); go('fridge'); return;} planWeek(); render(); toast('Fresh menu ready'); };
+  const cs = document.getElementById('copyShop'); if (cs) cs.onclick = ()=>copyText('🛒 Sabzi to buy:\n' + m.finished.map(id=>'• '+VM[id].n+' ('+VM[id].h+')').join('\n'));
+  view.querySelectorAll('[data-swap]').forEach(b=>b.onclick=()=>{ const [i,j]=b.dataset.swap.split(':').map(Number); swapMeal(i,j); });
+  view.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{ const [i,j]=b.dataset.open.split(':').map(Number); openDish(i,j); });
+}
+
+let found = [];
+function renderAdd(){
+  let h = `<h2>Add from your grocery order</h2>
+  <div class="card"><b>📸 Upload order screenshots</b>
+    <p class="small muted" style="margin:6px 0 10px">Open your order in the app, take a screenshot of the item list, and upload it here. Claude picks out the vegetables, dairy, eggs, meat and fish for you.</p>
+    <div class="logos"><span>Amazon Fresh</span><span>Flipkart Minutes</span><span>Swiggy Instamart</span><span>Any app</span></div>
+    <div style="margin-top:12px" id="shotArea"><span class="small muted"><span class="spin"></span> Checking…</span></div>
+  </div>
+  <div class="card" style="margin-top:12px"><b>📋 Or paste the order text</b>
+    <ol class="steps"><li>Open the order (or the confirmation email / SMS)</li><li>Select the item list → Copy</li><li>Paste below</li></ol>
+    <textarea id="paste" placeholder="e.g. Fresh Onion 1 kg, Amul Masti Dahi 400 g, Chicken Curry Cut 500 g…" style="margin-top:10px"></textarea>
+    <button class="btn primary" id="findBtn" style="margin-top:10px">🔍 Find vegetables</button>
+  </div>
+  <div id="foundBox" class="found"></div>
+  <p class="small muted" style="margin-top:14px">Why not automatic? Amazon, Flipkart and Instamart don't let other apps read your orders, so a screenshot or copy-paste is the quickest safe way.</p>`;
+  view.innerHTML = h;
+  drawShotArea();
+  document.getElementById('findBtn').onclick = ()=>{
+    const ids = parseText(document.getElementById('paste').value);
+    found = ids.map(id=>({id, lv:2, on:true}));
+    drawFound(ids.length ? '' : 'Nothing recognised. Try adding items by hand in My Fridge.');
+  };
+}
+function drawShotArea(){
+  const el = document.getElementById('shotArea'); if (!el) return;
+  if (sampleCap && sampleImages){
+    el.innerHTML = `<label class="btn primary filebtn">📷 Choose screenshot(s)<input type="file" id="shot" accept="image/*" multiple></label>`;
+    document.getElementById('shot').onchange = e=>readShots([...e.target.files]);
+  } else if (sampleReady) {
+    el.innerHTML = `<span class="small muted">Screenshot reading isn't available in this view — paste the order text below instead.</span>`;
+  }
+}
+function parseText(txt){
+  let work = ' ' + txt.toLowerCase().replace(/[^a-z\s]/g,' ').replace(/\s+/g,' ') + ' ';
+  for (const x of EXCLUDE) work = work.split(' '+x+' ').join(' # ');
+  const ids = new Set();
+  const pairs = VEG.flatMap(v=>v.a.map(a=>[a,v.id])).sort((a,b)=>b[0].length-a[0].length);
+  for (const [a,id] of pairs){
+    const re = new RegExp(' ' + a.replace(/ /g,' ') + 's? ', 'g');
+    if (re.test(work)){ ids.add(id); work = work.replace(re,' # '); }
+  }
+  return [...ids];
+}
+async function readShots(files){
+  if (!files.length) return;
+  const box = document.getElementById('foundBox');
+  box.innerHTML = `<div class="card"><span class="spin"></span> Reading your order…</div>`;
+  const list = VEG.map(v=>`${v.id} = ${v.n} / ${v.h}`).join('\n');
+  const prompt = `These are screenshots of an Indian grocery order (Amazon, Flipkart or Swiggy Instamart). Find every fresh vegetable, dairy item (milk, curd, paneer, cheese, butter, cream) and egg/meat/fish item in them and map each to one id from this list. Ignore anything not in the list (fruits, snacks, ice cream, masalas, coriander, chillies, ginger, garlic, lemon).\n\n${list}\n\nFor each item give "level": 1 if the quantity is small (under 250 g, under 500 ml, or under 6 eggs), 2 for a normal amount (250 g to 1 kg, 500 ml to 1 L, 6 to 12 eggs), 3 for a lot (more than that). If the same vegetable appears twice, use the larger level.\nReturn ONLY JSON like {"items":[{"id":"onion","level":3}]}. If nothing matches, return {"items":[]}.`;
+  try {
+    const res = await sampleCap.json(prompt, {images: files.slice(0,6), modelTier:'default'});
+    const items = (res && res.items || []).filter(x=>VM[x.id]);
+    const seen = new Map(); items.forEach(x=>{ const l=Math.min(3,Math.max(1,+x.level||2)); seen.set(x.id, Math.max(seen.get(x.id)||0,l)); });
+    found = [...seen].map(([id,lv])=>({id,lv,on:true}));
+    drawFound(found.length ? '' : "Couldn't spot any vegetables, dairy or meat in that screenshot. Try a clearer one, or paste the text.");
+  } catch(err){
+    const c = err && err.code;
+    drawFound(c==='rate_limited' ? 'Too many requests — try again in a minute.' : c==='not_granted' ? 'Reading screenshots was not allowed. You can paste the text instead.' : 'Something went wrong reading the screenshot. Try again or paste the text.');
+  }
+}
+function drawFound(msg){
+  const box = document.getElementById('foundBox'); if (!box) return;
+  if (msg){ box.innerHTML = `<div class="notice">${esc(msg)}</div>`; return; }
+  const n = found.filter(f=>f.on).length;
+  box.innerHTML = `<div class="card"><b>Found ${found.length} item${found.length>1?'s':''}</b> <span class="small muted">— tap to untick</span>
+    <div class="chips" style="margin-top:10px">${found.map((f,i)=>{const v=VM[f.id]; return `<button class="chip ${f.on?'sel':''}" data-f="${i}"><span class="e">${v.e}</span><span class="n">${esc(v.n)}</span><span class="h">${f.on?'✓ ':''}${LEVELS[f.lv]}</span></button>`;}).join('')}</div>
+    <button class="btn primary block" id="addFound" style="margin-top:12px" ${n?'':'disabled'}>Add ${n} to my fridge</button></div>`;
+  box.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{ const f=found[+b.dataset.f]; f.on=!f.on; drawFound(''); });
+  document.getElementById('addFound').onclick = ()=>{
+    found.filter(f=>f.on).forEach(f=>{ S.fridge[f.id] = Math.max(S.fridge[f.id]||0, f.lv); });
+    save(); toast(n+' items added to fridge'); found=[]; go('fridge');
+  };
+}
+
+/* ---------------- Sheets ---------------- */
+const overlay = document.getElementById('overlay'), sheet = document.getElementById('sheet');
+function openSheet(html){ sheet.innerHTML = html; overlay.classList.add('show'); }
+function closeSheet(){ overlay.classList.remove('show'); if (recipeAbort) recipeAbort.abort(); }
+overlay.addEventListener('click', e=>{ if (e.target===overlay) closeSheet(); });
+function openConfirm(q, yes){
+  openSheet(`<div class="grab"></div><h3>${esc(q)}</h3><div class="row-btns" style="margin-top:16px"><button class="btn ghost" id="cNo">Cancel</button><button class="btn primary" id="cYes" style="background:var(--red)">Yes, clear</button></div>`);
+  document.getElementById('cNo').onclick=closeSheet; document.getElementById('cYes').onclick=()=>{ closeSheet(); yes(); };
+}
+let recipeAbort = null;
+function openDish(i,j){
+  const n = S.menu.days[i][j], r = RM[n], sl = SLOTS[j];
+  const have = new Set(haveIds());
+  const d = dayDate(S.menu.start,i);
+  const tags = r ? r.need.map(id=>`<span>${VM[id].e} ${esc(VM[id].n)}</span>`).join('') + r.opt.filter(id=>have.has(id)).map(id=>`<span class="opt">+ ${esc(VM[id].n)}</span>`).join('') : '';
+  const sd = r ? sideFor(r, sl.k) : '';
+  openSheet(`<div class="grab"></div><div class="small muted">${sl.e} ${sl.l} · ${fmtDay(d)}</div><h3>${esc(n)}</h3>${sd?`<div class="muted">${esc(sd)}</div>`:''}
+    <div class="vtags">${tags || '<span class="opt">🫙 Pantry dish — no fresh veg needed</span>'}</div>
+    <div class="row-btns"><button class="btn" id="sSwap">↻ Swap dish</button>${sampleCap?`<button class="btn primary" id="sHow">👩‍🍳 How to make it</button>`:''}<button class="btn ghost" id="sClose">Close</button></div>
+    <div id="howBox"></div>`);
+  document.getElementById('sSwap').onclick = ()=>{ closeSheet(); swapMeal(i,j); };
+  document.getElementById('sClose').onclick = closeSheet;
+  const hb = document.getElementById('sHow');
+  if (hb) hb.onclick = ()=>howTo(n, r);
+}
+async function howTo(n, r){
+  const box = document.getElementById('howBox');
+  box.innerHTML = `<div class="recipe"><span class="spin"></span> Getting a simple recipe…</div>`;
+  const out = box.firstChild;
+  const avail = haveIds().map(id=>VM[id].n).join(', ');
+  recipeAbort = new AbortController();
+  const prompt = `Give a simple, home-style Indian recipe for "${n}" for a family of 4.\nVegetables available at home: ${avail || 'basic pantry only'}. Assume a normal Indian kitchen pantry (dals, rice, atta, spices, oil, ghee, curd).\nFormat exactly as plain text, no markdown symbols like # or **:\nTime: <total minutes>\n\nIngredients:\n- item – quantity\n(keep to the essentials)\n\nSteps:\n1. ...\n(5 to 8 short steps)\n\nTip: one practical tip.`;
+  try {
+    const res = await sampleCap(prompt, {modelTier:'quick', signal: recipeAbort.signal, onText: ({text})=>{ out.textContent = text; }});
+    out.textContent = res.text;
+  } catch(err){
+    if (err && err.name==='AbortError') return;
+    out.textContent = (err && err.code==='rate_limited') ? 'Too many requests — try again in a minute.' : 'Could not load the recipe right now.';
+  }
+}
+
+/* ---------------- Boot ---------------- */
+let sampleReady = false;
+render();
+(async ()=>{
+  try {
+    const r = await fetch(location.href, {cache:'no-store'});
+    if (r.ok){ const t = await r.text(); if (/^<!DOCTYPE html>/i.test(t.trim()) && t.includes('id="state"') && t.includes('Sabzi Week Planner')) SRC = t; }
+  } catch(e){}
+})();
+(async ()=>{
+  try { artifactCap = window.claude ? await window.claude.use('artifact') : null; } catch(e){ artifactCap = null; }
+  if (!artifactCap) setSaved('Saved on this device');
+})();
+(async ()=>{
+  try {
+    sampleCap = window.claude ? await window.claude.use('sample') : null;
+    if (sampleCap){ const lim = await sampleCap.limits(); sampleImages = !!(lim && lim.images); }
+  } catch(e){ sampleCap = null; }
+  sampleReady = true;
+  drawShotArea();
+})();
+setTimeout(()=>{ if(!sampleReady){ sampleReady = true; drawShotArea(); } }, 11000);
+</script>
+</body>
+</html>
